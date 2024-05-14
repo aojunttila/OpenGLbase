@@ -72,7 +72,7 @@
  
      public void createShapes(){
          //shapeList.add(new CustomOBJ(new File("src/main/models/Bunny.obj")).scale(100,100,100).transform(0, -10, 0));
-         //shapeList.add(new CustomOBJ(new File("src/main/models/mountain1.obj")).scale(100,100,100).transform(0, -10, 0));//.scale(100f,100f,100f)
+         shapeList.add(new CustomOBJ(new File("src/main/models/mountain1.obj")).scale(100,100,100).transform(0, -10, 0));//.scale(100f,100f,100f)
          //shapeList.add(new CustomOBJ(new File("src/main/models/teapot.obj")).scale(1,1,1).transform(0, 0, 0));
          //shapeList.add(new CustomOBJ(new File("src/main/models/K2.obj")).scale(1,1,1));//.scale(100f,100f,100f)
          //shapeList.add(new CustomOBJ(new File("src/main/models/tromso.obj")).scale(1,1,1));
@@ -250,7 +250,7 @@
              double prevPitch=pitch;
              float rotateY=deltaY*(0.01f*sensitivity);
              float rotateX=deltaX*(0.01f*sensitivity);
-             rotationTracker+=rotateX;
+             rotationTracker+=rotateX/2;
              yaw+=rotateX;pitch+=rotateY;
              if(pitch>1.5){pitch=1.5;rotateY=(float)(pitch-prevPitch);}
              if(pitch<-1.5){pitch=-1.5;rotateY=(float)(pitch-prevPitch);}
@@ -330,7 +330,7 @@
              viewProj.setPerspective((float)Math.toRadians(43.0f),(float)width/height,0.1f,100.0f)
                .lookAt(0,0.5f,3,0,0,0,0, 1, 0);
              try(MemoryStack stack=stackPush()) {
-                 glUniformMatrix4fv(viewProjUniform, false, updateMatrices2(delta).get(stack.mallocFloat(16)));
+                 glUniformMatrix4fv(viewProjUniform, false, updateMatrices(delta).get(stack.mallocFloat(16)));
                  glUniform3fv(lightUniform,new float[]{sun.x,sun.y,sun.z});}
 
              glDisable(GL_CULL_FACE);
@@ -418,6 +418,7 @@
     
      float speed2=0.0f;
      float rotateZ=0;
+     double smoothRotationTracker=0;
      private Matrix4f updateMatrices2(float dt) {
         float speed=0.1f;
         
@@ -425,20 +426,25 @@
         if(keyDown[GLFW_KEY_Q]){rotateZ-=0.01f;}
         if(keyDown[GLFW_KEY_E]){rotateZ+=0.01f;}
         //if(keyDown[GLFW_KEY_R]){fov=(fov-30)*0.5f+30f;}else{fov=(fov-90)*0.5f+90f;}
-        //if(keyDown[GLFW_KEY_W]){speed2=(speed2-20)*0.9f+20f;fov=(fov-130)*0.95f+130f;}
-        //if(keyDown[GLFW_KEY_S]){speed2=(speed2-5)*0.95f+5f;fov=(fov-90)*0.95f+90f;}
-        if(keyDown[GLFW_KEY_W]){position.add(new Vector3f(speed*(float)Math.sin(-yaw),0f,speed*(float)Math.cos(-yaw)));}
-         if(keyDown[GLFW_KEY_S]){position.add(new Vector3f(-speed*(float)Math.sin(-yaw),0f,-speed*(float)Math.cos(-yaw)));}
+        if(keyDown[GLFW_KEY_W]){speed2=(speed2-20)*0.9f+20f;fov=(fov-110)*0.95f+110f;}
+        if(keyDown[GLFW_KEY_S]){speed2=(speed2-5)*0.95f+5f;fov=(fov-90)*0.95f+90f;}
+        //if(keyDown[GLFW_KEY_W]){position.add(new Vector3f(speed*(float)Math.sin(-yaw),0f,speed*(float)Math.cos(-yaw)));}
+         //if(keyDown[GLFW_KEY_S]){position.add(new Vector3f(-speed*(float)Math.sin(-yaw),0f,-speed*(float)Math.cos(-yaw)));}
         if(keyDown[GLFW_KEY_A]){position.add(new Vector3f(-speed*(float)Math.sin(-yaw-Math.PI/2),0f,-speed*(float)Math.cos(-yaw-Math.PI/2)));}
         if(keyDown[GLFW_KEY_D]){position.add(new Vector3f(speed*(float)Math.sin(-yaw-Math.PI/2),0f,speed*(float)Math.cos(-yaw-Math.PI/2)));}
-        if(keyDown[GLFW_KEY_SPACE]){position.add(new Vector3f(0.0f,-1f*speed,0.0f));}
-        if(keyDown[GLFW_KEY_LEFT_SHIFT]){position.add(new Vector3f(0.0f,1f*speed,0.0f));}
+        if(keyDown[GLFW_KEY_SPACE]){position.add(new Vector3f(0.0f,-0.1f*speed*speed2,0.0f));}
+        if(keyDown[GLFW_KEY_LEFT_SHIFT]){position.add(new Vector3f(0.0f,0.1f*speed*speed2,0.0f));}
         position.add(orientation.positiveZ(new Vector3f()).mul(dt * speed2));
+
+
+        smoothRotationTracker=(smoothRotationTracker-rotationTracker)*0.9+rotationTracker;
+        System.out.println(smoothRotationTracker);
+        if(smoothRotationTracker>0.2){smoothRotationTracker=0.2;}
+        if(smoothRotationTracker<-0.2){smoothRotationTracker=-0.2;}
+        rotateZ-=smoothRotationTracker*0.015*speed2;
         
-        System.out.println(rotationTracker);
-        //rotateZ+=rotationTracker*10;
-        //rotationTracker*=0.9f;
-        //rotateZ=rotateZ*0.95f;
+        rotationTracker*=0.95f;
+        rotateZ=rotateZ*0.95f;
 
 
         updateShapes();

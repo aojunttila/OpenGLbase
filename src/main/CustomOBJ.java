@@ -38,8 +38,8 @@ public class CustomOBJ extends Shape{
         colorList=new float[vertexList.length];
         
         for(int i=0;i<colorList.length;i+=3){
-            //Vector3f color=new Vector3f(rand.nextFloat(1),rand.nextFloat(1),rand.nextFloat(1));
-            Vector3f color=new Vector3f(0.8f,0.8f,0.8f);
+            Vector3f color=new Vector3f(rand.nextFloat(1),rand.nextFloat(1),rand.nextFloat(1));
+            //Vector3f color=new Vector3f(0.8f,0.8f,0.8f);
             colorList[i]=color.x;
             colorList[i+1]=color.y;
             colorList[i+2]=color.z;
